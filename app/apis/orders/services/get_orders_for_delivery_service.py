@@ -1,7 +1,8 @@
 from typing import List
 
+from apis.auth.utils import RolesBasedAuthChecker
 from apis.orders import schemas
-from db.models import Order
+from db.models import Order, UserRole
 from db.session import get_db
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
@@ -20,6 +21,7 @@ def get_orders(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
+    auth=Depends(RolesBasedAuthChecker([UserRole.EMPLOYEE, UserRole.CHEF])),
 ):
     """
     This is a dedicated endpoint for delivery services to integrate with
