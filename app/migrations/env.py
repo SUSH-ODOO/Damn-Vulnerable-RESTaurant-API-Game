@@ -9,9 +9,18 @@ from sqlalchemy import engine_from_config, pool
 # access to the values within the .ini file in use.
 config = context.config
 
+# Migrations require DDL privileges and therefore use the bootstrap credentials,
+# which are only provided to the dedicated migration service.
+if not settings.POSTGRES_USER or not settings.POSTGRES_PASSWORD:
+    raise RuntimeError(
+        "POSTGRES_USER and POSTGRES_PASSWORD must be set to run migrations"
+    )
+
 config.set_main_option(
     "sqlalchemy.url",
-    f"postgresql+psycopg2://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}",
+    f"postgresql+psycopg2://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}".replace(
+        "%", "%%"
+    ),
 )
 
 # Interpret the config file for Python logging.
