@@ -21,12 +21,20 @@ class Settings:
     # someone needs to remember to set this variable to True in env variables
     JWT_VERIFY_SIGNATURE = os.getenv("JWT_VERIFY_SIGNATURE")
 
-    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "admin")
-    POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "password")
     POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost")
     POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", 5432)
     POSTGRES_DB: str = os.getenv("POSTGRES_DB", "restaurant")
-    DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
+
+    # Bootstrap (administrative) credentials. They are intended exclusively for
+    # the one-shot migration/provisioning service and MUST NOT be supplied to
+    # the web runtime. No defaults are provided on purpose.
+    POSTGRES_USER = os.getenv("POSTGRES_USER")
+    POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+
+    # Unprivileged runtime role (no superuser/createdb/createrole, DML only).
+    APP_DB_USER: str = os.getenv("APP_DB_USER", "restaurant_app")
+    APP_DB_PASSWORD = os.getenv("APP_DB_PASSWORD", "app_password")
+    DATABASE_URL = f"postgresql://{APP_DB_USER}:{APP_DB_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
 
 settings = Settings()

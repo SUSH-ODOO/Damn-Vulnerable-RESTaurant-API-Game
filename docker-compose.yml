@@ -1,7 +1,27 @@
 services:
+  migrate:
+    # One-shot job: the only service that holds the PostgreSQL bootstrap
+    # (superuser) credentials. It applies migrations and provisions the
+    # unprivileged runtime role used by the web service.
+    build: .
+    command: bash -c "alembic upgrade head && python db/provision_app_role.py"
+    volumes:
+      - ./app/:/app/
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+      - APP_DB_USER=restaurant_app
+      - APP_DB_PASSWORD=app_password
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=restaurant
   web:
     build: .
-    command: bash -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8091 --workers 1 --reload"
+    command: bash -c "uvicorn main:app --host 0.0.0.0 --port 8091 --workers 1 --reload"
     volumes:
       - ./app/:/app/
     ports:
@@ -9,12 +29,14 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     privileged: true
     cap_add:
       - SYS_ADMIN
     environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=password
+      - APP_DB_USER=restaurant_app
+      - APP_DB_PASSWORD=app_password
       - POSTGRES_SERVER=db
       - POSTGRES_PORT=5432
       - POSTGRES_DB=restaurant
