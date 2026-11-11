@@ -10,7 +10,7 @@ from typing_extensions import Annotated
 
 SECRET_KEY = Settings.JWT_SECRET_KEY
 ALGORITHM = "HS256"
-VERIFY_SIGNATURE = False
+VERIFY_SIGNATURE = True
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 

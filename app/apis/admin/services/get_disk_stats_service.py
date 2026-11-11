@@ -23,5 +23,8 @@ def get_disk_usage_stats(
             status_code=403, detail="Only Chef is authorized to get current disk stats!"
         )
 
-    usage = get_disk_usage(parameters)
+    try:
+        usage = get_disk_usage(parameters)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return DiskUsage(output=usage)
