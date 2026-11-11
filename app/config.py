@@ -18,6 +18,10 @@ class Settings:
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", generate_random_secret())
     CHEF_USERNAME = os.getenv("CHEF_USERNAME", "chef")
 
+    # Out-of-band secret required to reset the Chef password.
+    # When unset, the reset endpoint is disabled (fails closed).
+    CHEF_PASSWORD_RESET_TOKEN = os.getenv("CHEF_PASSWORD_RESET_TOKEN")
+
     # someone needs to remember to set this variable to True in env variables
     JWT_VERIFY_SIGNATURE = os.getenv("JWT_VERIFY_SIGNATURE")
 
