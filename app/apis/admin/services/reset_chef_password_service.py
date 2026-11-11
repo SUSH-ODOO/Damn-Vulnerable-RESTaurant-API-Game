@@ -1,10 +1,11 @@
 import secrets
 import string
+from typing import Optional
 
 from apis.auth.utils import update_user_password
 from config import settings
 from db.session import get_db
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 router = APIRouter()
@@ -20,8 +21,9 @@ router = APIRouter()
 def get_reset_chef_password(
     request: Request,
     db: Session = Depends(get_db),
+    x_admin_reset_token: Optional[str] = Header(default=None),
 ):
-    client_host = request.client.host
+    client_host = request.client.host if request.client else None
 
     # Only requests from the same machine are allowed
     # This endpoint is available only for Chef who is also our server admin!
@@ -29,6 +31,22 @@ def get_reset_chef_password(
         raise HTTPException(
             status_code=403,
             detail="Chef password can be reseted only from the local machine!",
+        )
+
+    # The peer address alone is not an authorization control: any local process
+    # shares it. A pre-shared secret, provisioned out of band, is also required.
+    # If no secret is configured, the endpoint is disabled.
+    expected_token = settings.CHEF_PASSWORD_RESET_TOKEN
+    if (
+        not expected_token
+        or not x_admin_reset_token
+        or not secrets.compare_digest(
+            x_admin_reset_token.encode("utf-8"), expected_token.encode("utf-8")
+        )
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid or missing admin reset token!",
         )
 
     characters = string.ascii_letters + string.digits + "!@#$%^&*()_-+=;:[]"

@@ -1,10 +1,10 @@
 from db.models import User, UserRole
 
 
-def test_reset_chef_password_unauthorised_returns_403(test_db, anon_client, mocker):
+def test_reset_chef_****_unauthorised_returns_403(test_db, anon_client, mocker):
     chef_user = User(
         username="chef",
-        password="password",
+        ****="****",
         first_name="",
         last_name="",
         phone_number="",
@@ -16,18 +16,18 @@ def test_reset_chef_password_unauthorised_returns_403(test_db, anon_client, mock
     mock_client = mocker.patch("fastapi.Request.client")
     mock_client.host = "192.168.0.5"
 
-    response = anon_client.get(f"/admin/reset-chef-password")
+    response = anon_client.get(f"/admin/reset-chef-****")
     assert response.status_code == 403
     assert (
         response.json().get("detail")
-        == "Chef password can be reseted only from the local machine!"
+        == "Chef **** can be reseted only from the local machine!"
     )
 
 
-def test_reset_chef_password_from_localhost_returns_200(test_db, anon_client, mocker):
+def test_reset_chef_****_from_localhost_returns_200(test_db, anon_client, mocker):
     chef_user = User(
         username="chef",
-        password="password",
+        ****="****",
         first_name="",
         last_name="",
         phone_number="",
@@ -38,10 +38,25 @@ def test_reset_chef_password_from_localhost_returns_200(test_db, anon_client, mo
 
     mock_client = mocker.patch("fastapi.Request.client")
     mock_client.host = "127.0.0.1"
+    mocker.patch("config.settings.CHEF_PASSWORD_RESET_TOKEN", "test-reset-token")
 
-    response = anon_client.get(f"/admin/reset-chef-password")
+    response = anon_client.get(
+        f"/admin/reset-chef-****",
+        headers={"X-Admin-Reset-Token": "test-reset-token"},
+    )
     assert response.status_code == 200
-    assert response.json().get("password") is not None
+    assert response.json().get("****") is not None
+
+
+def test_reset_chef_****_from_localhost_without_token_returns_403(
+    test_db, anon_client, mocker
+):
+    mock_client = mocker.patch("fastapi.Request.client")
+    mock_client.host = "127.0.0.1"
+    mocker.patch("config.settings.CHEF_PASSWORD_RESET_TOKEN", "test-reset-token")
+
+    response = anon_client.get(f"/admin/reset-chef-****")
+    assert response.status_code == 403
 
 
 def test_stats_disk_returns_output_with_200(test_db, chef_client):
