@@ -1,5 +1,5 @@
 import os
-import random
+import secrets
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -8,10 +8,11 @@ env_path = Path(".") / ".env"
 load_dotenv(dotenv_path=env_path)
 
 
-# 6 digits random secrets are secure enough,
-# I don't believe someone could brute-force them
+# Fallback signing secret used only when JWT_SECRET_KEY is not configured.
+# It is generated from a cryptographically secure source with 512 bits of
+# entropy so that it cannot be brute-forced offline from an observed token.
 def generate_random_secret():
-    return "".join(random.choices("1234567890", k=6))
+    return secrets.token_urlsafe(64)
 
 
 class Settings:
